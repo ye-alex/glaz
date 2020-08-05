@@ -13,10 +13,11 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 
-import Copyright from './components/Copyright/Copyright';
-import UsefulLink from './components/UsefulLink/UsefulLink';
-import LocalizationBox from './components/LocalizationBox/LocalizationBox';
+import Copyright from './components/Copyright/';
+import UsefulLink from './components/UsefulLink/';
+import LocalizationBox from './components/LocalizationBox/';
 import useStyles from './styles';
+import { EMAIL, PASSWORD } from './constants';
 
 const SignIn = () => {
   const classes = useStyles();
@@ -37,9 +38,9 @@ const SignIn = () => {
   }, []);
 
   const getAllLocalization = () => {
-    const url = 'https://dev1.glaz.systems/api/v1.2/localization/all';
+    const localizationURL = 'https://dev1.glaz.systems/api/v1.2/localization/all';
 
-    axios.get(url)
+    axios.get(localizationURL)
       .then(({ data }) => setLocalization(data))
       .catch(console.error);
   };
@@ -49,28 +50,29 @@ const SignIn = () => {
 
     const localizationURL = `https://dev1.glaz.systems/api/v1.2/localization/${value}`;
 
-    const response = await axios.get(localizationURL);
+    const localization = await axios.get(localizationURL);
 
-    const result = response.data.login;
+    const loginData = localization.data.login;
 
-    return setLoginData(result);
+    return setLoginData(loginData);
   }
 
   const onChange = (name, event) => {
-    const value = event.target ? event.target.value : event;
+    const { value } = event.target;
 
+    // eslint-disable-next-line
     switch (name) {
-      case 'email':
+      case EMAIL:
         setUserEmail(value);
         setErrors({
-          ...initialErrors,
+          ...errors,
           email: [],
         });
         break;
-      case 'password':
+      case PASSWORD:
         setUserPassword(value);
         setErrors({
-          ...initialErrors,
+          ...errors,
           password: [],
         });
         break;
@@ -80,7 +82,7 @@ const SignIn = () => {
   const onSubmit = event => {
     event.preventDefault();
 
-    setErrors(initialErrors);
+    setErrors({ ...initialErrors });
 
     const loginURL = 'https://dev1.glaz.systems/api/v1.2/authenticate/login';
 
@@ -89,36 +91,55 @@ const SignIn = () => {
       password: userPassword,
     })
       .then(({ data }) => setSignInData(data.message))
-      .catch(({ response }) => setErrors(response.data));
+      .catch(({ response }) => {
+        const { email = [], password = [] } = response.data;
+
+        setErrors({
+          ...errors,
+          email,
+          password,
+        });
+      });
   };
 
   const {
-    sign_in_bt,
-    remember_me,
+    sign_in_bt: signInBtn,
+    remember_me: rememberMe,
     password,
-    lost_password,
+    lost_password: lostPassword,
     email,
-    dont_have_account,
+    dont_have_account: dontHaveAccount,
   } = loginData;
+
+  const {
+    paper,
+    avatar,
+    form,
+    success,
+    submit,
+    locale,
+  } = classes;
+
+  const isEmail = !!errors.email.length;
+  const isPassword = !!errors.password.length;
 
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
 
-      <div className={classes.paper}>
-
-        <Avatar className={classes.avatar}>
+      <div className={paper}>
+        <Avatar className={avatar}>
           <LockOutlinedIcon />
         </Avatar>
 
         <Typography component="h1" variant="h5">
-          {sign_in_bt}
+          {signInBtn}
         </Typography>
 
-        <form className={classes.form} noValidate onSubmit={onSubmit}>
+        <form className={form} noValidate onSubmit={onSubmit}>
 
-          {
-            signInData && <p className={classes.success}>{signInData}</p>
+          {signInData &&
+            <p className={success}>{signInData}</p>
           }
 
           <TextField
@@ -126,49 +147,46 @@ const SignIn = () => {
             margin="normal"
             required
             fullWidth
-            id="email"
+            id={EMAIL}
             label={email}
-            name="email"
-            autoComplete="email"
+            name={EMAIL}
+            autoComplete={EMAIL}
             autoFocus
-            onChange={event => onChange('email', event)}
-            error={!!errors.email.length}
-            helperText={errors.email.length ? errors.email : ''}
+            onChange={event => onChange(EMAIL, event)}
+            error={isEmail}
+            helperText={isEmail ? errors.email : ''}
           />
-
           <TextField
             variant="outlined"
             margin="normal"
             required
             fullWidth
-            name="password"
+            name={PASSWORD}
             label={password}
-            type="password"
-            id="password"
+            type={PASSWORD}
+            id={PASSWORD}
             autoComplete="current-password"
-            onChange={event => onChange('password', event)}
-            error={errors.password && errors.password.length ? true : false}
-            helperText={errors.password && errors.password.length ? errors.password : ''}
+            onChange={event => onChange(PASSWORD, event)}
+            error={isPassword}
+            helperText={isPassword ? errors.password : ''}
           />
-
           <FormControlLabel
             control={<Checkbox value="remember" color="primary" />}
-            label={remember_me}
+            label={rememberMe}
           />
-
           <Button
             type="submit"
             fullWidth
             variant="contained"
             color="primary"
-            className={classes.submit}
+            className={submit}
           >
-            {sign_in_bt}
+            {signInBtn}
           </Button>
 
           <Grid container>
-            <UsefulLink textLink={lost_password} />
-            <UsefulLink textLink={dont_have_account} />
+            <UsefulLink textLink={lostPassword} />
+            <UsefulLink textLink={dontHaveAccount} />
           </Grid>
 
         </form>
@@ -177,7 +195,7 @@ const SignIn = () => {
       <LocalizationBox
         localization={localization}
         onClick={changeLocalization}
-        classes={classes.locale}
+        classes={locale}
       />
 
       <Box mt={8}>
