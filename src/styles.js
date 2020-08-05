@@ -28,7 +28,10 @@ const useStyles = makeStyles((theme) => ({
   success: {
     background: '#91e891',
     color: '#fff',
-  }
+  },
+  link: {
+    textAlign: 'end',
+  },
 }));
 
 export default useStyles;

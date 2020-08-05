@@ -118,6 +118,7 @@ const SignIn = () => {
     success,
     submit,
     locale,
+    link,
   } = classes;
 
   const isEmail = !!errors.email.length;
@@ -186,7 +187,7 @@ const SignIn = () => {
 
           <Grid container>
             <UsefulLink textLink={lostPassword} />
-            <UsefulLink textLink={dontHaveAccount} />
+            <UsefulLink textLink={dontHaveAccount} className={link} />
           </Grid>
 
         </form>
